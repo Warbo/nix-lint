@@ -1,0 +1,7 @@
+From: Chris Warburton
+Date: Tue, 03 Apr 2018 19:33:41 +0100
+State: new
+Subject: Add check for unquoted splices
+Message-Id: <954196c1c7325425-0-artemis@nixos>
+
+We prefer splices like ${foo} to be inside strings

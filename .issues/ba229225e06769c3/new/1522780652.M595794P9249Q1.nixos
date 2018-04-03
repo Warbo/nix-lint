@@ -1,0 +1,10 @@
+From: Chris Warburton
+Date: Tue, 03 Apr 2018 19:35:53 +0100
+State: new
+Subject: Check for complicated splice escaping
+Message-Id: <ba229225e06769c3-0-artemis@nixos>
+
+For example, if we're writing a bash script and we want to use "${foo}"
+then this will conflict with Nix's own syntax. There are ways to work
+around this with escaping, but it can be easier to just concatenate the
+string from pieces, e.g. "${"$" + "{foo}"}"

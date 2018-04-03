@@ -1,0 +1,47 @@
+# Nix Lint #
+
+This package provides a linter for the Nix expression language (used by the
+[Nix](https://nixos.org/nix) package manager and associated tools).
+
+## Invocation ##
+
+The main way to use this tool is to run the `nix-lint` executable. This will
+read Nix source code from standard input, write suggestions about the code to
+standard output in a simple JSON format, and write errors which prevented the
+linting from working (e.g. unparseable source code) to standard error.
+specifically *do not* supp
+
+`nix-lint` will exit with code `0` if no errors were encountered and no
+suggestions were made; exit code `1` if errors prevented linting; or `2` if no
+errors were encountered and suggestions were made.
+
+Control over linting (e.g. enabling/disabling certain checks) can be achieved by
+setting environment variables (TODO).
+
+We expose all of our innards as a Haskell library, in case it's useful to
+anyone; for example, to write custom checking functions.
+
+## Anti-Features ##
+
+`nix-lint` specifically *does not* provide any of the following functionality,
+since the author feels it is either unneeded bloat, better performed by some
+other tool, or subjective enough that users may prefer to do it themselves (e.g.
+with a wrapper script):
+
+ - Command line arguments. We avoid these since they're unnecessarily
+   complicated for both users and developers, for example: arbitrary ordering;
+   grouping by order (e.g. `-foo myFoo`) or by formatting and parsing (e.g.
+   `--foo=myFoo`); inheriting arguments is painful; myriad conventions and
+   long/short redundancy; setting defaults requires an alias or wrapper; etc.
+ - Reading/writing files. This is better handled by the shell, editor, Web UI,
+   build server, etc. that is invoking the linter.
+ - Looping through many files/expressions. Again, this is better handled by the
+   invoking process (e.g. via `find`)
+ - Human-readable output. Our machine readable output is trivial to display in a
+   variety of ways (plain text, ANSI terminal codes, email, HTML, etc.) so we
+   leave that up to the user. The `jq` tool is nice for scripting.
+
+## Checks ##
+
+The following checks are supported. All checks are enabled by default; to
+disable a check add its ID to the `NIX_LINT_DISABLE` environment variable.

@@ -1,0 +1,12 @@
+From: Chris Warburton
+Date: Tue, 03 Apr 2018 19:37:35 +0100
+State: new
+Subject: Add check for eval-time building
+Message-Id: <b9beb0a2fd91b8be-0-artemis@nixos>
+
+This should include stuff like readFile where the argument is a
+derivation.
+
+We should have separate checks for import from derivation and using
+callPackage on a derivation, since those are the preferred mechanisms
+if we do turn out to want eval-time building.

@@ -1,0 +1,7 @@
+From: Chris Warburton
+Date: Tue, 03 Apr 2018 19:31:16 +0100
+State: new
+Subject: Add unused "with" check
+Message-Id: <eb6f770c0925bd56-0-artemis@nixos>
+
+Look for "with" statements which define names that aren't ever used.

@@ -1,0 +1,7 @@
+From: Chris Warburton
+Date: Tue, 03 Apr 2018 19:29:52 +0100
+State: new
+Subject: Add location information
+Message-Id: <8736ae4591e2a1f7-0-artemis@nixos>
+
+The NExprLoc type in hnix can be used to make more informative messages.

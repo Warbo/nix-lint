@@ -17,9 +17,23 @@ extra-source-files:  ChangeLog.md
 cabal-version:       >=1.10
 
 library
-  -- exposed-modules:     
+  exposed-modules:     Language.Nix.Lint
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       base >=4.9 && <4.10
+  build-depends:       base >=4.9 && <5
+                     , containers
+                     , hnix
+                     , text
   hs-source-dirs:      src
   default-language:    Haskell2010
+
+executable nix-lint
+  build-depends:  nix-lint
+  main-is:        Main.hs
+  hs-source-dirs: nix-lint
+
+test-suite test
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  build-depends:  nix-lint
+  hs-source-dirs: test

@@ -1,0 +1,7 @@
+From: Chris Warburton
+Date: Tue, 03 Apr 2018 19:30:36 +0100
+State: new
+Subject: Add unused argument check
+Message-Id: <9eefe33d6f5bbaf9-0-artemis@nixos>
+
+Add a check for functions which take arguments but don't use them.

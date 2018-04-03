@@ -1,0 +1,8 @@
+From: Chris Warburton
+Date: Tue, 03 Apr 2018 19:32:26 +0100
+State: new
+Subject: Add check for let/in
+Message-Id: <9286a6901f3a1e23-0-artemis@nixos>
+
+The 'let'/'in' construct provides a sub-set of 'with', so warn if we see
+the former.

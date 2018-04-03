@@ -1,0 +1,9 @@
+From: Chris Warburton
+Date: Tue, 03 Apr 2018 19:34:16 +0100
+State: new
+Subject: Add checks for potentially-dodgy quoting
+Message-Id: <db6b4c2c1c9c3385-0-artemis@nixos>
+
+Nix seems to have some edge-cases when it comes to string quoting and
+splices. We should investigate these (e.g. I seem to remember that it's
+a bad idea to end a string with a splice?) and add checks for them.
