@@ -1,21 +1,30 @@
+{-# LANGUAGE DeriveGeneric, LambdaCase, OverloadedStrings,
+             PartialTypeSignatures #-}
+{-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
 module Language.Nix.Lint where
 
-import qualified Data.Aeson             as Aeson
-import           Data.Map.Strict           (Map)
-import qualified Data.Map.Strict        as Map
-import           Data.Text.Lazy            (Text)
-import qualified Data.Text.Lazy         as Text
-import qualified Nix.Expr               as Nix
-import qualified Nix.Parser             as Parser
-import qualified System.Environment     as Env
+import           Data.Aeson                 ((.=))
+import qualified Data.Aeson              as Aeson
+import           Data.Map.Strict            (Map)
+import qualified Data.Map.Strict         as Map
+import           Data.Text.Lazy             (Text)
+import qualified Data.Text.Lazy          as Text
+import qualified Data.Text.Lazy.Encoding as TE
+import qualified Data.Text.Lazy.IO       as TIO
+import           GHC.Generics               (Generic)
+import qualified Nix.Expr                as Nix
+import qualified Nix.Parser              as Parser
+import qualified System.Environment      as Env
 
-newtype ID = ID Text
+newtype ID = ID Text deriving (Eq, Generic, Ord, Read)
+instance Aeson.ToJSON    ID
+instance Aeson.ToJSONKey ID
 
 newtype Result = R [Text]
 
-newtype Results = Map ID Result
+newtype Results = Rs (Map ID Result)
 
-newtype Check = Check {
+data Check = Check {
     checkID   :: ID
   , checkName :: Text
   , checkFunc :: Nix.NExpr -> Maybe Result
@@ -30,10 +39,10 @@ defaultChecks = []
 
 checkWithAll :: Nix.NExpr -> [Check] -> Results
 checkWithAll expr = (`go` Map.empty)
-  where go []     rs = rs
+  where go []     rs = Rs rs
         go (c:cs) rs = go cs (case checkFunc c expr of
                                 Nothing -> rs
-                                Just r  -> Map.insert (checkId c) r rs)
+                                Just r  -> Map.insert (checkID c) r rs)
 
 checkWithCfg :: Config -> Nix.NExpr -> [Check] -> Results
 checkWithCfg cfg expr = checkWithAll expr . disable cfg
@@ -45,34 +54,42 @@ readConfig :: IO Config
 readConfig = Cfg . maybe [] read <$> Env.lookupEnv "NIX_LINT_DISABLE"
 
 err :: Aeson.Value -> a
-err = error . show . encode
+err = error . show . Aeson.encode
 
-lookup' :: k -> Map k v -> v
-lookup' k m = Map.findWithDefault (err msg) k v
-  where msg = object ["error" .= "Missing name for ID",
-                      "id"    .= id                   ,
-                      "names" .= names                ]
+lookup' :: _ => k -> Map k v -> v
+lookup' k m = Map.findWithDefault (err msg) k m
+  where msg = Aeson.object ["error" .= ("Missing key in map" :: String),
+                            "key"   .= k                   ,
+                            "map"   .= m                   ]
 
 resultsToText :: [Check] -> Results -> Text
-resultsToText checks = Map.foldlWithKey' go Text.empty
-  where go acc         = Text.append acc . Aeson.encode . mkMap
-        mkMap id (R r) = object ["id"          .= id              ,
-                                 "name"        .= lookup' id names,
-                                 "suggestions" .= r               ]
+resultsToText checks (Rs rs) = Map.foldlWithKey' go Text.empty rs
+  where go :: Text -> ID -> Result -> Text
+        go acc id = Text.append acc . TE.decodeUtf8 . Aeson.encode . mkMap id
+
+        mkMap :: ID -> Result -> Aeson.Value
+        mkMap id (R r) = Aeson.object ["id"          .= id              ,
+                                       "name"        .= lookup' id names,
+                                       "suggestions" .= r               ]
         names          = Map.fromList (map getName checks)
         getName c      = (checkID c, checkName c)
 
-parseExpr = handle . Nix.parseNix
-  where handle (Left  e) = err (object ["error"   .= "Parse failure",
-                                        "details" .= e              ])
-        handle (Right x) = x
+parseExpr :: Text -> Nix.NExpr
+parseExpr = handle . Parser.parseNixText . Text.toStrict
+  where handle = \case
+          Parser.Failure e -> err (Aeson.object [
+                                    "error"   .= ("Parse failure" :: String),
+                                    "details" .= show e
+                                  ])
+          Parser.Success x -> x
 
 lintWithAll :: [Check] -> Text -> Text
-lintWithAll checks = resultsToText . (`checkWithAll` checks) . parseExpr
+lintWithAll checks = resultsToText checks . (`checkWithAll` checks) . parseExpr
 
 lintWithCfg :: Config -> [Check] -> Text -> Text
-lintWithCfg = lintWithAll . disable
+lintWithCfg cfg = lintWithAll . disable cfg
 
+nixLintMain :: IO ()
 nixLintMain = do
   cfg <- readConfig
-  interact (lintWithCfg cfg defaultChecks)
+  TIO.interact (lintWithCfg cfg defaultChecks)
