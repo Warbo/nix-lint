@@ -18,7 +18,7 @@ newtype Results = Map ID Result
 newtype Check = Check {
     checkID   :: ID
   , checkName :: Text
-  , checkFunc :: Nix.Expr -> Maybe Result
+  , checkFunc :: Nix.NExpr -> Maybe Result
   }
 
 newtype Config = Cfg { cfgDisabled :: [ID] }
@@ -28,14 +28,14 @@ defaultConfig = Cfg []
 defaultChecks :: [Check]
 defaultChecks = []
 
-checkWithAll :: Nix.Expr -> [Check] -> Results
+checkWithAll :: Nix.NExpr -> [Check] -> Results
 checkWithAll expr = (`go` Map.empty)
   where go []     rs = rs
         go (c:cs) rs = go cs (case checkFunc c expr of
                                 Nothing -> rs
                                 Just r  -> Map.insert (checkId c) r rs)
 
-checkWithCfg :: Config -> Expr -> [Check] -> Results
+checkWithCfg :: Config -> Nix.NExpr -> [Check] -> Results
 checkWithCfg cfg expr = checkWithAll expr . disable cfg
 
 disable :: Config -> [Check] -> [Check]
