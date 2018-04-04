@@ -23,7 +23,8 @@ with rec {
     # Uses a Cabal sandbox to pick dependencies from (a snapshot of) Hackage
     hackageDeps = pkgs.haskellPkgWithDeps {
       inherit hsPkgs;
-      dir = ./.;
+      delay-failure = true;
+      dir           = ./.;
     };
   };
 };
