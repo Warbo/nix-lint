@@ -1,0 +1,14 @@
+From: Chris Warburton
+Date: Tue, 03 Apr 2018 19:49:56 +0100
+State: new
+Subject: Check for misnamed arguments
+Message-Id: <bf85c2e17f7a46bc-0-artemis@nixos>
+
+For example, if we accept an argument under one name but have to
+immediately rename it:
+
+  foo = bar: baz { quux = bar; };
+
+In cases like this we can either rename `bar` to `quux` and use
+`inherit quux` or rename the `quux` argument to `bar` and use
+`inherit bar`

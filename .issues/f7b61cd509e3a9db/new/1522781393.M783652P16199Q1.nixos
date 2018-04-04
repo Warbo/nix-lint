@@ -1,0 +1,7 @@
+From: Chris Warburton
+Date: Tue, 03 Apr 2018 19:48:56 +0100
+State: new
+Subject: Check for use-cases for inherit
+Message-Id: <f7b61cd509e3a9db-0-artemis@nixos>
+
+For example 'foo = foo' (where we can use 'inherit foo')

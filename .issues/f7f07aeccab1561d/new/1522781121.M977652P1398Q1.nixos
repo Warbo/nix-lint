@@ -1,0 +1,8 @@
+From: Chris Warburton
+Date: Tue, 03 Apr 2018 19:44:29 +0100
+State: new
+Subject: Add check for non-alphabetical arguments
+Message-Id: <f7f07aeccab1561d-0-artemis@nixos>
+
+Argument sets can be written in any order, so we might as well normalise
+everything to alphabetical order.

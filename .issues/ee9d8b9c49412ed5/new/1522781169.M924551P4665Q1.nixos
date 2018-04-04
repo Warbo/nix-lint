@@ -1,0 +1,8 @@
+From: Chris Warburton
+Date: Tue, 03 Apr 2018 19:45:25 +0100
+State: new
+Subject: Add check for non-alphabetical attrset members
+Message-Id: <ee9d8b9c49412ed5-0-artemis@nixos>
+
+We might as well define everything in alphabetical order, since it
+allows easier navigation.

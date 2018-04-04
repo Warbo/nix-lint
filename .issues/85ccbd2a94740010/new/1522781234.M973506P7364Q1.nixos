@@ -1,0 +1,10 @@
+From: Chris Warburton
+Date: Tue, 03 Apr 2018 19:46:12 +0100
+State: new
+Subject: Add check for non-alphabetical inherits
+Message-Id: <85ccbd2a94740010-0-artemis@nixos>
+
+There are actually two checks here:
+
+ - `inherit (a) ...` should come before `inherit (b) ...`
+ - `inherit (...) a b` is preferable to `inherit (...) b a`

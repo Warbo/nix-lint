@@ -1,0 +1,8 @@
+From: Chris Warburton
+Date: Tue, 03 Apr 2018 19:52:21 +0100
+State: new
+Subject: Look for use-cases of common lib functions
+Message-Id: <cb4a1d2377a76727-0-artemis@nixos>
+
+For example genAttrs when generating attrsets from a list, mapAttrs to
+loop over names and values, etc.
