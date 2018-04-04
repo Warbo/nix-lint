@@ -18,23 +18,27 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     Language.Nix.Lint
+                     , Language.Nix.Lint.Checks
+                     , Language.Nix.Lint.Internal
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.9 && <5
                      , aeson
                      , containers
+                     , data-fix
                      , hnix
                      , text
-  hs-source-dirs:      src
+  hs-source-dirs:      src, test
   default-language:    Haskell2010
 
 executable nix-lint
-  build-depends:  nix-lint
+  build-depends:  base >=4.9 && <5
+                , nix-lint
   main-is:        Main.hs
   hs-source-dirs: nix-lint
 
 test-suite test
   type:           exitcode-stdio-1.0
-  main-is:        Main.hs
+  main-is:        Driver.hs
   build-depends:  nix-lint
   hs-source-dirs: test
