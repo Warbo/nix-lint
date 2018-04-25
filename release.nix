@@ -75,8 +75,8 @@ with rec {
 };
 
 with unstablePkgs.customised.nixpkgs1709;
-attrsToDirs {
-  "default.nix" = writeScript "nix-lint-release.nix" ''
+{
+  release = writeScript "nix-lint-release.nix" ''
     with import ${pkgSrc} {};
     with { go = import ${pkgExpr}; };
     {
