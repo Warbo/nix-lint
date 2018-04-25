@@ -1,37 +1,87 @@
 # Used for building and testing on Hydra
 
 # Provides a bunch of nixpkgs versions, augmented with useful helper functions
-with {
-  unstablePkgs = import ((import <nixpkgs> { config = {}; }).fetchgit {
+with rec {
+  pkgSrc = (import <nixpkgs> { config = {}; }).fetchgit {
     url    = http://chriswarbo.net/git/nix-config.git;
-    rev    = "7b96c3a";
-    sha256 = "0sqhf599ll2qshbnmspni5r3h5mfwbbkyz5xhfb3jxhflba594zw";
-  }) {};
+    rev    = "74ba11d";
+    sha256 = "0lzks69z5kfj5akd7f32z86sgnbld56976zcn290yj987nlq6g2m";
+  };
+
+  unstablePkgs = import pkgSrc {};
 };
 
 with builtins;
 with unstablePkgs.nixpkgs1709.lib;
 with rec {
-  skipBroken = f: name: if hasPrefix "ghcjs" name || hasPrefix "lts" name
-                           then (_: null)
-                           else f;
+  buildForNixpkgs = nixVersion:
+    with { super = getAttr nixVersion unstablePkgs; };
+    if compareVersions nixVersion "nixpkgs1703" == -1
+       then ""
+       else ''
+         #
+           "${nixVersion}" = with ${nixVersion}.haskell; {
+             ${concatStringsSep "\n" (map buildForHaskell
+                                          (attrNames super.haskell.packages))}
+           };
+       '';
 
-  # "self" is a customised nixpkgs set, "super" is the corresponding original
-  buildForNixpkgs = self: super: mapAttrs (skipBroken (buildForHaskell self))
-                                          super.haskell.packages;
+  buildForHaskell = hsVersion:
+    if hasPrefix "ghcjs"          hsVersion || hasPrefix "lts"      hsVersion ||
+       hasPrefix "ghc6"           hsVersion || hasPrefix "ghc7"     hsVersion ||
+       hasPrefix "ghcHaLVM"       hsVersion || hasSuffix "HEAD"     hsVersion ||
+       hasPrefix "integer-simple" hsVersion || hasPrefix "ghcCross" hsVersion
+       then ""
+       else ''
+         #
+             "${hsVersion}" = go { haskellPackages = packages."${hsVersion}"; };
+       '';
 
-  buildForHaskell = pkgs: hsPkgs: {
-    # Uses Haskell package set provided by nixpkgs
-    nixpkgsDeps  = hsPkgs.callPackage (pkgs.runCabal2nix { url = ./.; }) {};
+  pkgExpr =
+    with unstablePkgs.customised.nixpkgs1709;
+    runCommand "nix-lint-expr"
+      {
+        # A bare function, which we'll give arguments from the nixpkgs Haskell set
+        nixpkgsDeps = pkgs.runCabal2nix { url = ./.; };
 
-    # Uses a Cabal sandbox to pick dependencies from (a snapshot of) Hackage
-    hackageDeps = pkgs.haskellPkgWithDeps {
-      inherit hsPkgs;
-      delay-failure = true;
-      dir           = ./.;
-    };
-  };
+        # Uses a Cabal sandbox to pick dependencies from (a snapshot of) Hackage
+        hackageDeps = pkgs.haskellPkgDepsDrv { dir = ./.; name = "nix-lint"; };
+
+        default = pkgs.writeScript "default.nix" ''
+          { haskellPackages }:
+
+          with builtins;
+          with (import <nixpkgs> { config = {}; }).lib;
+          with rec {
+            depNames = import ./deps;
+
+            overrides = self: super: genAttrs depNames
+              (n: self.callPackage (./deps/pkgs + "/${"$" + "{n}"}.nix") {});
+
+            hsPkgs = haskellPackages.override { inherit overrides; };
+          };
+          {
+            hackageDeps = hsPkgs.nix-lint;
+            nixpkgsDeps = haskellPackages.callPackage ./fromCabal2nix.nix {};
+          }
+        '';
+      }
+      ''
+        mkdir "$out"
+        cp -r "$hackageDeps" "$out/deps"
+        cp    "$nixpkgsDeps" "$out/fromCabal2nix.nix"
+        cp "$default" "$out/default.nix"
+      '';
 };
 
-mapAttrs (name: self: buildForNixpkgs self (getAttr name unstablePkgs))
-         unstablePkgs.customised
+with unstablePkgs.customised.nixpkgs1709;
+attrsToDirs {
+  "default.nix" = writeScript "nix-lint-release.nix" ''
+    with import ${pkgSrc} {};
+    with { go = import ${pkgExpr}; };
+    {
+      ${concatStringsSep "\n" (map buildForNixpkgs
+                                   (attrNames unstablePkgs.customised))}
+    }
+  '';
+}
