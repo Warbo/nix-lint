@@ -40,5 +40,6 @@ executable nix-lint
 test-suite test
   type:           exitcode-stdio-1.0
   main-is:        Driver.hs
-  build-depends:  nix-lint
+  build-depends:  nix-lint, Cabal
+  build-tools:    tasty-discover
   hs-source-dirs: test
