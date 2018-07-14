@@ -5,8 +5,8 @@ with builtins;
 with {
   helpersSrc = (import <nixpkgs> {}).fetchgit {
     url    = http://chriswarbo.net/git/nix-helpers.git;
-    rev    = "d012fd6";
-    sha256 = "1lbjsn2z6d80df8qw7izsiszpdvj6bmpy179pqar9gdfgwlbl9rv";
+    rev    = "9e86df4";
+    sha256 = "0s2b87q0bifkga514jhxf3cb0asyjhpjyhdpqbsfiinilxy7xih4";
   };
 };
 
