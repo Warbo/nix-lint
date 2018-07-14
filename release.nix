@@ -12,7 +12,7 @@ with {
 
 with import helpersSrc;
 collapseAttrs (haskellRelease {
-  name        = "nix-eval";
+  name        = "nix-lint";
   dir         = ./.;
   hackageSets = { nixpkgs1709 = [ "ghc802" ]; };
 })
