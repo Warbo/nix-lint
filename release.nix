@@ -11,8 +11,12 @@ with {
 };
 
 with import helpersSrc;
-collapseAttrs (haskellRelease {
-  name        = "nix-lint";
-  dir         = ./.;
-  hackageSets = { nixpkgs1709 = [ "ghc802" ]; };
-})
+with { hsPkgs = nixpkgs1709.haskell.packages.ghc802; };
+{
+  "nixpkgs1709.haskell.packages.ghc802.nix-lint" =
+    hsPkgs.callPackage (nixpkgs1803.haskellPackages.haskellSrc2nix {
+                         name = "nix-lint";
+                         src  = ./.;
+                       })
+                       {};
+}
